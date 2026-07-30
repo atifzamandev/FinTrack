@@ -361,6 +361,3 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/FinTrack.API/WeatherForecast.cs
-/FinTrack.API/Controllers/StudentsController.cs
-/FinTrack.API/Controllers/WeatherForecastController.cs
