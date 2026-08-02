@@ -1,9 +1,9 @@
-﻿namespace FinTrack.API.Models.Enums
+﻿namespace   FinTrack.API.Models.Enums
 {
-        public  enum TransactionType
-        {
-            Income,
-            Expense
-        }
+  public enum TransactionType
+  {
+    Income,
+    Expense
+  }
     
 }

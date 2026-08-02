@@ -122,5 +122,34 @@ namespace FinTrack.API.Controllers
 
             return CreatedAtAction(nameof(GetAccountById), new { id = accountDto.Id }, accountDto);
         }
+
+        [HttpPut]
+        [Route("{id:guid}")]
+        public IActionResult UpdateAccount([FromRoute] Guid id, [FromBody] UpdateAccountRequestDto updateAccountRequestDto)
+        {
+            var accountDomainModel = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
+
+            if (accountDomainModel == null) return NotFound();
+
+            accountDomainModel.Name = updateAccountRequestDto.Name;
+            accountDomainModel.AccountNumber = updateAccountRequestDto.AccountNumber;
+            accountDomainModel.Balance = updateAccountRequestDto.Balance;
+
+            dbContext.SaveChanges();
+
+            var accountDto = new AccountDto
+            {
+                Id = accountDomainModel.Id,
+                Name = accountDomainModel.Name,
+                AccountNumber = accountDomainModel.AccountNumber,
+                Balance = accountDomainModel.Balance,
+                Currency = accountDomainModel.Currency,
+            };
+
+            return Ok(accountDto);
+
+
+        }
+
     }
 }
