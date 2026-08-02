@@ -147,8 +147,30 @@ namespace FinTrack.API.Controllers
             };
 
             return Ok(accountDto);
+        }
+        [HttpDelete]
+        [Route("{id:guid}")]
 
+        public IActionResult DeleteAccount([FromRoute] Guid id)
+        {
+            var accountDomainModel = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
 
+            if (accountDomainModel == null) return NotFound();
+
+            dbContext.Accounts.Remove(accountDomainModel);
+
+            dbContext.SaveChanges();
+
+            var accountDto = new AccountDto
+            {
+                Id = accountDomainModel.Id,
+                Name = accountDomainModel.Name,
+                AccountNumber = accountDomainModel.AccountNumber,
+                Balance = accountDomainModel.Balance,
+                Currency = accountDomainModel.Currency,
+            };
+
+            return Ok(accountDto);
         }
 
     }
