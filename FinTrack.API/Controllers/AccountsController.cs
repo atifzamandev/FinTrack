@@ -1,7 +1,9 @@
 ﻿using FinTrack.API.Data;
 using FinTrack.API.Models.Domains;
+using FinTrack.API.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace FinTrack.API.Controllers
 {
@@ -18,9 +20,24 @@ namespace FinTrack.API.Controllers
         [HttpGet]
         public IActionResult GetAllAccounts()
         {
-            var accounts = dbContext.Accounts.ToList();
 
-            return Ok(accounts);
+            var accountsDomain = dbContext.Accounts.ToList();
+
+            var accountsDto = new List<AccountDto>();
+
+            foreach (var account in accountsDomain)
+            {
+                accountsDto.Add(new AccountDto
+                {
+                    Id = account.Id,
+                    Name = account.Name,
+                    AccountNumber = account.AccountNumber,
+                    Balance = account.Balance,
+                    Currency = account.Currency,
+                });
+            }
+
+            return Ok(accountsDto);
         }
 
         [HttpGet]
@@ -28,33 +45,82 @@ namespace FinTrack.API.Controllers
 
         public IActionResult GetAccountById([FromRoute] Guid id)
         {
-            var account = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
+            var accountDomain = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
 
-            if (account == null) return NotFound();
+            if (accountDomain == null) return NotFound();
 
-            return Ok(account);
+            var accountDto = new AccountDto
+            {
+                Id = accountDomain.Id,
+                Name = accountDomain.Name,
+                AccountNumber = accountDomain.AccountNumber,
+                Balance = accountDomain.Balance,
+                Currency = accountDomain.Currency,
+            };
+
+            return Ok(accountDto);
         }
 
         [HttpGet]
         [Route("search")]
-        public IActionResult GetAccountByName([FromQuery] string accountName) 
+        public IActionResult GetAccountByName([FromQuery] string accountName)
         {
-            var accounts = dbContext.Accounts
-                .Where(x=>x.Name.ToLower().Contains(accountName.ToLower()))
-                .ToList();
-
-            if (!accounts.Any()) 
-            {
-                return NotFound(new { Message = "No matching account found." });
-            }
-
             if (string.IsNullOrWhiteSpace(accountName))
             {
                 return BadRequest(new { Message = "Account name is required." });
             }
 
-            return Ok(accounts);
+            var accountsDomain = dbContext.Accounts
+                .Where(x=>x.Name.ToLower().Contains(accountName.ToLower()))
+                .ToList();
+
+            if (!accountsDomain.Any()) 
+            {
+                return NotFound(new { Message = "No matching account found." });
+            }
+
+            var accountsDto = new List<AccountDto>();
+
+            foreach (var account in accountsDomain) {
+                accountsDto.Add( new AccountDto
+                {
+                    Id = account.Id,
+                    Name = account.Name,
+                    AccountNumber = account.AccountNumber,
+                    Balance = account.Balance,
+                    Currency = account.Currency,
+
+                });
+            }
+
+            return Ok(accountsDto);
         }
 
+        [HttpPost]
+        public IActionResult CreateAccount([FromBody] AddAccountRequestDto addAccountRequestDto)
+        {
+            var accountDomainModel = new Account
+            {
+                Name = addAccountRequestDto.Name,
+                AccountNumber = addAccountRequestDto.AccountNumber,
+                Balance = addAccountRequestDto.Balance,
+                Currency = addAccountRequestDto.Currency.ToUpper(),
+            };
+
+            dbContext.Accounts.Add(accountDomainModel);
+            dbContext.SaveChanges();
+
+            var accountDto = new AccountDto
+            {
+                Id = accountDomainModel.Id,
+                Name = accountDomainModel.Name,
+                AccountNumber = accountDomainModel.AccountNumber,
+                Balance = accountDomainModel.Balance,
+                Currency = accountDomainModel.Currency,
+
+            };
+
+            return CreatedAtAction(nameof(GetAccountById), new { id = accountDto.Id }, accountDto);
+        }
     }
 }
