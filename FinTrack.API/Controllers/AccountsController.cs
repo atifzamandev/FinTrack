@@ -1,8 +1,8 @@
 ﻿using FinTrack.API.Data;
 using FinTrack.API.Models.Domains;
 using FinTrack.API.Models.DTO;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace FinTrack.API.Controllers
@@ -18,10 +18,10 @@ namespace FinTrack.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllAccounts()
+        public async Task<IActionResult> GetAllAccounts()
         {
 
-            var accountsDomain = dbContext.Accounts.ToList();
+            var accountsDomain = await dbContext.Accounts.ToListAsync();
 
             var accountsDto = new List<AccountDto>();
 
@@ -43,9 +43,9 @@ namespace FinTrack.API.Controllers
         [HttpGet]
         [Route("{id:guid}")]
 
-        public IActionResult GetAccountById([FromRoute] Guid id)
+        public async Task<IActionResult> GetAccountById([FromRoute] Guid id)
         {
-            var accountDomain = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
+            var accountDomain = await dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == id);
 
             if (accountDomain == null) return NotFound();
 
@@ -63,16 +63,16 @@ namespace FinTrack.API.Controllers
 
         [HttpGet]
         [Route("search")]
-        public IActionResult GetAccountByName([FromQuery] string accountName)
+        public async Task<IActionResult> GetAccountByName([FromQuery] string accountName)
         {
             if (string.IsNullOrWhiteSpace(accountName))
             {
                 return BadRequest(new { Message = "Account name is required." });
             }
 
-            var accountsDomain = dbContext.Accounts
+            var accountsDomain = await dbContext.Accounts
                 .Where(x=>x.Name.ToLower().Contains(accountName.ToLower()))
-                .ToList();
+                .ToListAsync();
 
             if (!accountsDomain.Any()) 
             {
@@ -97,7 +97,7 @@ namespace FinTrack.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateAccount([FromBody] AddAccountRequestDto addAccountRequestDto)
+        public async Task<IActionResult> CreateAccount([FromBody] AddAccountRequestDto addAccountRequestDto)
         {
             var accountDomainModel = new Account
             {
@@ -107,8 +107,8 @@ namespace FinTrack.API.Controllers
                 Currency = addAccountRequestDto.Currency.ToUpper(),
             };
 
-            dbContext.Accounts.Add(accountDomainModel);
-            dbContext.SaveChanges();
+            await dbContext.Accounts.AddAsync(accountDomainModel);
+            await dbContext.SaveChangesAsync();
 
             var accountDto = new AccountDto
             {
@@ -125,9 +125,9 @@ namespace FinTrack.API.Controllers
 
         [HttpPut]
         [Route("{id:guid}")]
-        public IActionResult UpdateAccount([FromRoute] Guid id, [FromBody] UpdateAccountRequestDto updateAccountRequestDto)
+        public async Task<IActionResult> UpdateAccount([FromRoute] Guid id, [FromBody] UpdateAccountRequestDto updateAccountRequestDto)
         {
-            var accountDomainModel = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
+            var accountDomainModel = await dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == id);
 
             if (accountDomainModel == null) return NotFound();
 
@@ -135,7 +135,7 @@ namespace FinTrack.API.Controllers
             accountDomainModel.AccountNumber = updateAccountRequestDto.AccountNumber;
             accountDomainModel.Balance = updateAccountRequestDto.Balance;
 
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             var accountDto = new AccountDto
             {
@@ -151,15 +151,15 @@ namespace FinTrack.API.Controllers
         [HttpDelete]
         [Route("{id:guid}")]
 
-        public IActionResult DeleteAccount([FromRoute] Guid id)
+        public async Task<IActionResult> DeleteAccount([FromRoute] Guid id)
         {
-            var accountDomainModel = dbContext.Accounts.FirstOrDefault(x => x.Id == id);
+            var accountDomainModel = await dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == id);
 
             if (accountDomainModel == null) return NotFound();
 
             dbContext.Accounts.Remove(accountDomainModel);
 
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             var accountDto = new AccountDto
             {
