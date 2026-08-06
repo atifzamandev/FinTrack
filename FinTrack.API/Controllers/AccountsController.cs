@@ -1,6 +1,7 @@
 ﻿using FinTrack.API.Data;
 using FinTrack.API.Models.Domains;
 using FinTrack.API.Models.DTO;
+using FinTrack.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -12,16 +13,19 @@ namespace FinTrack.API.Controllers
     public class AccountsController : ControllerBase
     {
         private readonly FinTrackDbContext dbContext;
-        public AccountsController(FinTrackDbContext dbContext)
+        private readonly IAccountRepository accountRepository;
+        public AccountsController(FinTrackDbContext dbContext, IAccountRepository accountRepository)
         {
             this.dbContext = dbContext;
+            this.accountRepository = accountRepository;
+
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllAccounts()
         {
 
-            var accountsDomain = await dbContext.Accounts.ToListAsync();
+            var accountsDomain = await accountRepository.GetAllAccountsAsync();
 
             var accountsDto = new List<AccountDto>();
 

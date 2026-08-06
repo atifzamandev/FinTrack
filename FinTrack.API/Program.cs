@@ -1,4 +1,5 @@
 using FinTrack.API.Data;
+using FinTrack.API.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<FinTrackDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("FinTrackDbConnection")));
+
+builder.Services.AddScoped<IAccountRepository, SQLAccountRepository>();
 
 
 var app = builder.Build();
